@@ -1,4 +1,5 @@
 import pathlib
+from markdownify import markdownify as md
 
 import pandas as pd
 
@@ -10,7 +11,7 @@ class Pair:
 
 
 def fill_second_parameter(parameters: Pair, ls, index):
-    bold_lines = get_bold_line_numbers(ls)
+    bold_lines = get_header_line_numbers(ls)
     if parameters.one in ls[index]:
         ul = find_next_number(bold_lines, index)
         parameters.two = construct_content_of_lines(ls, ul, index)
@@ -18,6 +19,9 @@ def fill_second_parameter(parameters: Pair, ls, index):
 
 def create_df_row(p: Pair):
     return p.two,
+
+
+headings = "Vorname", "Nachname", "Ich bestelle als", "Einrichtung (optional)", "Straße", "Hausnummer", "PLZ", "Stadt", "E-Mail", "Telefon (optional)", "Wie haben Sie von dem Projekt erfahren? (optional)", "Möchten Sie uns noch etwas mitteilen? (optional)"
 
 
 class Form:
@@ -50,19 +54,19 @@ class Form:
                 create_df_row(self.mitteilen)]
 
 
-def is_bold(l: str):
+def is_headline(l: str):
     l = l.strip()
-    return l.startswith("**") and l.endswith("**")
+    return l in headings
 
 
-def get_bold_line_numbers(lines: list):
+def get_header_line_numbers(lines: list):
     """
     this function finds all lines that contain a bold word marking a heading
     :return:
     """
     numbers = []
     for i, line in enumerate(lines):
-        if is_bold(line):
+        if is_headline(line):
             numbers.append(i)
     numbers.append(len(lines) + 1)
     return numbers
@@ -104,10 +108,12 @@ if __name__ == '__main__':
             fill_second_parameter(form.mitteilen, *extra_parameters)
             fill_second_parameter(form.strasse, *extra_parameters)
             fill_second_parameter(form.hausnummer, *extra_parameters)
+
     excel_file = pathlib.Path("excel_file.xlsx")
+
     with pd.ExcelWriter(excel_file, engine="openpyxl", mode="a", if_sheet_exists="overlay") as writer:
         df = pd.DataFrame.from_records(form.get_dataframe()).transpose()
         # df.to_excel(excel_writer=writer, index=False, sheet_name="Sheet1", header=False)
-        print(df.to_excel(writer, sheet_name="Sheet1", startrow=writer.sheets["Sheet1"].max_row, index=False, header=False))
-
+        df.to_excel(writer, sheet_name="Tabelle1", startrow=writer.sheets["Tabelle1"].max_row, index=False,
+                    header=False)
         writer._save()
