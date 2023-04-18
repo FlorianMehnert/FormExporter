@@ -1,8 +1,5 @@
 import pathlib
-from pprint import pprint
 
-import openpyxl
-from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
 
 
