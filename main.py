@@ -1,5 +1,4 @@
 import pathlib
-from markdownify import markdownify as md
 
 import pandas as pd
 
