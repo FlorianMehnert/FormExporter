@@ -1,0 +1,4 @@
+sheet: "Sheet"
+table: "tabelle.xlsx"
+input: "eingabe"
+headings: ["Vorname", "Nachname", "Ich bestelle als", "Einrichtung (optional)", "Straße", "Hausnummer", "PLZ", "Stadt", "E-Mail", "Telefon (optional)", "Wie haben Sie von dem Projekt erfahren? (optional)", "Möchten Sie uns noch etwas mitteilen? (optional)"]

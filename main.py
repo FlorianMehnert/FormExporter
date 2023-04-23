@@ -1,6 +1,9 @@
 import pathlib
 
+import openpyxl
 import pandas as pd
+import xlrd
+import yaml
 
 
 class Pair:
@@ -20,23 +23,20 @@ def create_df_row(p: Pair):
     return p.two,
 
 
-headings = "Vorname", "Nachname", "Ich bestelle als", "Einrichtung (optional)", "Straße", "Hausnummer", "PLZ", "Stadt", "E-Mail", "Telefon (optional)", "Wie haben Sie von dem Projekt erfahren? (optional)", "Möchten Sie uns noch etwas mitteilen? (optional)"
-
-
 class Form:
-    def __init__(self):
-        self.vorname = Pair("Vorname", None)  # titel, lokaler content
-        self.nachname = Pair("Nachname", None)
-        self.bestelle_als = Pair("Ich bestelle als", None)
-        self.einrichtung = Pair("Einrichtung (optional)", None)
-        self.strasse = Pair("Straße", None)
-        self.hausnummer = Pair("Hausnummer", None)
-        self.plz = Pair("PLZ", None)
-        self.stadt = Pair("Stadt", None)
-        self.email = Pair("E-Mail", None)
-        self.telefon = Pair("Telefon (optional)", None)
-        self.erfahren = Pair("Wie haben Sie von dem Projekt erfahren? (optional)", None)
-        self.mitteilen = Pair("Möchten Sie uns noch etwas mitteilen? (optional)", None)
+    def __init__(self, h):
+        self.vorname = Pair(h[0], None)  # titel, lokaler content
+        self.nachname = Pair(h[1], None)
+        self.bestelle_als = Pair(h[2], None)
+        self.einrichtung = Pair(h[3], None)
+        self.strasse = Pair(h[4], None)
+        self.hausnummer = Pair(h[5], None)
+        self.plz = Pair(h[6], None)
+        self.stadt = Pair(h[7], None)
+        self.email = Pair(h[8], None)
+        self.telefon = Pair(h[9], None)
+        self.erfahren = Pair(h[10], None)
+        self.mitteilen = Pair(h[11], None)
 
     def get_dataframe(self):
         return [create_df_row(self.vorname),
@@ -89,9 +89,41 @@ def construct_content_of_lines(lines: list[str], until, starting):
 
 
 if __name__ == '__main__':
-    form = Form()
-    with open("foo.md", "r") as f:
-        current_topic = ""
+    file_name = ""
+    table_name = ""
+    sheet_name = ""
+    headings = []
+
+    with open("config.yml", "r") as stream:
+        try:
+            load = yaml.safe_load(stream)
+            sheet_name = load['sheet']
+            table_name = load['table']
+            file_name = load['input']
+            headings = load['headings']
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    if not file_name:
+        print("Name der Eingabedatei fehlt")
+        exit(1)
+    if not table_name:
+        print("Name der Tabelle fehlt")
+        exit(1)
+    if not sheet_name:
+        print("Name des Tabellenblatts fehlt")
+        exit(1)
+    if not headings:
+        print("Es wurden keine Tabellenspalten angegeben")
+        exit(1)
+    if len(headings) < 12:
+        print("Es wurden zu wenig Tabellenspalten angeben")
+        exit(1)
+
+    form = Form(headings)
+    if not pathlib.Path(file_name).exists():
+        pathlib.Path(file_name).open("a+")
+    with open(file_name, "r") as f:
         lines = f.readlines()
         for i, line in enumerate(lines):
             extra_parameters = (lines, i)
@@ -108,11 +140,14 @@ if __name__ == '__main__':
             fill_second_parameter(form.strasse, *extra_parameters)
             fill_second_parameter(form.hausnummer, *extra_parameters)
 
-    excel_file = pathlib.Path("excel_file.xlsx")
+    excel_file = pathlib.Path(table_name)
+    if not excel_file.exists():
+        wb = openpyxl.Workbook()
+        wb.save(excel_file)
 
     with pd.ExcelWriter(excel_file, engine="openpyxl", mode="a", if_sheet_exists="overlay") as writer:
         df = pd.DataFrame.from_records(form.get_dataframe()).transpose()
-        # df.to_excel(excel_writer=writer, index=False, sheet_name="Sheet1", header=False)
-        df.to_excel(writer, sheet_name="Tabelle1", startrow=writer.sheets["Tabelle1"].max_row, index=False,
+        print(writer.sheets[sheet_name].max_row)
+        df.to_excel(writer, sheet_name=sheet_name, startrow=writer.sheets[sheet_name].max_row, index=False,
                     header=False)
         writer._save()
