@@ -5,6 +5,6 @@
 3. in der config.yml Datei den Namen von der Eingabedatei, Tabelle und den Namen vom zu bearbeitenden Datenblatt in der Tabelle ändern, falls nötig: **die Tabelle und die Eingabedatei müssen beide in dem Verzeichnis von main.py liegen**
 4. zusätzlich in der config Datei die Reihenfolge der Spalten anpassen, falls nötig
 ```bash
-pip install -r requirements.txt```
+pip install -r requirements.txt
 ```
 5. main.py mit Python ausführen
